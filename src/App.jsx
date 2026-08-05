@@ -1,12 +1,12 @@
 import Saludo from "./components/saludo";
 import ContactoCard from "./components/ContactoCard";
 import "./App.css";
-import { useState } from "react";
+import useLocalStorage from "./hooks/useLocalStorage";
 import { ContactoFormulario } from "./components/ContactoFormulario";
 
 function App() {
 
-  const [contactos, setContactos] = useState([]);
+  const [contactos, setContactos] = useLocalStorage("contactos", []);
 
   const AgregarContacto = (nombre, correo, telefono, etiqueta) => {
 
@@ -16,12 +16,20 @@ function App() {
 
   }
 
+  const EliminarContacto = (index) => {
+
+    setContactos(contactos.filter((contacto, i) => i !== index));
+
+  }
+
   return (
     <>
-    {console.log(contactos)}
       <header className="app-header">
         <h1>Agenda ADSO</h1>
         <p className="app-subtitle">Contactos Guardados</p>
+        <div className="contador-contactos">
+          Tienes <strong>{contactos.length}</strong> {contactos.length === 1 ? "contacto" : "contactos"} guardados
+        </div>
         <Saludo />
       </header>
 
@@ -29,15 +37,18 @@ function App() {
     OnAgregar={AgregarContacto}
     />    
       
-    {contactos.map((contacto, index) =>(
-      <ContactoCard
-      key={index}
-      nombre={contacto.nombre}
-      correo={contacto.correo}
-      telefono={contacto.telefono}
-      etiqueta={contactos.etiqueta}
-      />
-    ))}  
+      <div className="contactos-grid">
+        {contactos.map((contacto, index) =>(
+          <ContactoCard
+          key={index}
+          nombre={contacto.nombre}
+          correo={contacto.correo}
+          telefono={contacto.telefono}
+          etiqueta={contacto.etiqueta}
+          onEliminar={() => EliminarContacto(index)}
+          />
+        ))}
+      </div>
     </>
 
 
