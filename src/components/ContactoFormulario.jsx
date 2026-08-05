@@ -44,7 +44,7 @@ export function ContactoFormulario({OnAgregar}) {
             {correo && !correoValido && (
                 <p className="form-error">El correo debe contener "@".</p>
             )}
-            <button type="button" disabled={!formularioValido} onClick={() => OnAgregar(nombre, correo, telefono, etiqueta)}>Agregar</button>
+            <button type="button" disabled={!formularioValido} onClick={() => { OnAgregar(nombre, correo, telefono, etiqueta); setNombre(""); setCorreo(""); setTelefono(""); setEtiqueta(""); }}>Agregar</button>
         </form>
     )
 
