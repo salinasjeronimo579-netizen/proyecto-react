@@ -1,0 +1,13 @@
+{
+  "contactos": [
+    {
+      "id": "1",
+      "nombre": "Jerónimo Salinas",
+      "correo": "jeronimo@example.com",
+      "telefono": "3001234567",
+      "etiqueta": "Trabajo",
+      "empresa": "ADSO"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
