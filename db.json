@@ -7,6 +7,22 @@
       "etiqueta": "ewrwer",
       "empresa": "",
       "id": "Uz_GpJaLOq4"
+    },
+    {
+      "nombre": "pacha",
+      "correo": "pacha@gmail.com",
+      "telefono": "23132132",
+      "etiqueta": "compañero",
+      "empresa": "",
+      "id": "fLSXKzSvCb4"
+    },
+    {
+      "nombre": "jero",
+      "correo": "salinasjeronimo@gmail.com",
+      "telefono": "123123132",
+      "etiqueta": "programador",
+      "empresa": "",
+      "id": "XwLThwJnDtQ"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
