@@ -44,6 +44,15 @@
   color: #38bdf8;
 }
 
+.resultados-contador {
+  width: 100%;
+  margin: 0;
+  flex-basis: 100%;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
 /* Estilos genéricos para lo que renderiza <Saludo /> */
 .app-header h2 {
   font-size: 1.6rem;
@@ -57,5 +66,3 @@
   font-size: 0.95rem;
   margin: 0;
 }
-
-

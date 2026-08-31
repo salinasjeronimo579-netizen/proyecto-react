@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paginación en React — Agenda ADSO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0A1614; --bg-panel:#0F211D; --bg-panel-2:#132923;
+    --text:#E9F5F1; --text-muted:#87A79E;
+    --teal:#2DD4BF; --teal-deep:#0D9488;
+    --purple:#A78BFA; --green:#34D399; --red:#FB7185; --amber:#FBBF24;
+    --code-bg:#081310; --border:#173832;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; line-height:1.6;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif; margin:0;}
+  code, pre, .mono{font-family:'JetBrains Mono',monospace;}
+
+  .shell{display:grid; grid-template-columns:240px 1fr; max-width:1200px; margin:0 auto;}
+  @media (max-width:880px){.shell{grid-template-columns:1fr;} .sidenav{display:none;}}
+  .sidenav{position:sticky; top:0; align-self:start; height:100vh; padding:30px 16px; border-right:1px solid var(--border); overflow-y:auto;}
+  .sidenav .brand{font-weight:700; font-size:0.93rem; display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+  .sidenav .brand .dot{width:10px;height:10px;border-radius:50%; background:var(--teal); box-shadow:0 0 10px var(--teal);}
+  .sidenav .brand-sub{font-size:0.72rem; color:var(--text-muted); margin-bottom:24px; padding-left:18px;}
+  .sidenav nav a{display:block; color:var(--text-muted); text-decoration:none; font-size:0.79rem; padding:6px 10px; border-radius:6px; margin-bottom:1px; border-left:2px solid transparent;}
+  .sidenav nav a:hover{color:var(--text); background:var(--bg-panel);}
+  .sidenav nav a.active{color:var(--teal); border-left:2px solid var(--teal); background:var(--bg-panel);}
+
+  main{padding:0 40px 100px;}
+  @media (max-width:880px){main{padding:0 20px 80px;}}
+  section{padding-top:56px; scroll-margin-top:16px;}
+  .eyebrow{text-transform:uppercase; letter-spacing:0.13em; font-size:0.68rem; color:var(--purple); font-weight:600; margin-bottom:10px;}
+  section h2{font-size:1.42rem; margin-bottom:12px;}
+  section > p.lead{color:var(--text-muted); max-width:660px; margin-bottom:20px;}
+
+  .hero{padding:60px 40px 30px;}
+  .hero .eyebrow{color:var(--teal);}
+  .hero h1{font-size:2.15rem; line-height:1.16; max-width:760px;}
+  .hero h1 em{font-style:normal; color:var(--teal);}
+  .hero p.sub{color:var(--text-muted); max-width:620px; margin-top:14px; font-size:1rem;}
+  .hero-meta{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;}
+  .pill{font-size:0.7rem; padding:5px 11px; border-radius:20px; background:var(--bg-panel); border:1px solid var(--border); color:var(--text-muted); font-family:'JetBrains Mono',monospace;}
+
+  .panel{background:var(--bg-panel); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; break-inside:avoid;}
+  .panel-head{display:flex; align-items:center; gap:8px; padding:9px 16px; border-bottom:1px solid var(--border); background:var(--bg-panel-2); font-size:0.73rem; color:var(--text-muted);}
+  .panel-head .lights{display:flex; gap:5px;}
+  .panel-head .lights span{width:8px;height:8px;border-radius:50%; background:#1a382f;}
+  .panel-body{padding:20px;}
+  .panel-body.demo{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+  .badge{font-size:0.65rem; padding:3px 9px; border-radius:20px; background:rgba(45,212,191,0.14); color:var(--teal); font-family:'JetBrains Mono',monospace; margin-left:8px;}
+
+  pre.code{margin:0; padding:16px 20px; background:var(--code-bg); overflow-x:auto; font-size:0.8rem; line-height:1.7; color:#dcf5ee;}
+  .code .kw{color:#f472b6;} .code .fn{color:#7dd3fc;} .code .str{color:var(--amber);}
+  .code .tag{color:#67e8f9;} .code .attr{color:#a5d6ff;} .code .cm{color:#4c6961; font-style:italic;} .code .prop{color:#c4b5fd;}
+
+  .code-explain{display:grid; grid-template-columns:1.15fr 1fr; gap:0;}
+  @media (max-width:760px){.code-explain{grid-template-columns:1fr;}}
+  .explain-side{padding:20px; border-left:1px solid var(--border); background:var(--bg-panel-2);}
+  @media (max-width:760px){.explain-side{border-left:none; border-top:1px solid var(--border);}}
+  .explain-side .et{font-weight:600; font-size:0.83rem; color:var(--teal); margin-bottom:3px; font-family:'JetBrains Mono',monospace;}
+  .explain-side .ed{font-size:0.82rem; color:var(--text-muted); margin-bottom:14px;}
+  .explain-side .ed:last-child{margin-bottom:0;}
+
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:760px){.two-col{grid-template-columns:1fr;}}
+
+  button.demo-btn{background:var(--teal-deep); color:#04150f; border:none; font-family:'Space Grotesk',sans-serif; font-weight:600; padding:9px 15px; border-radius:8px; cursor:pointer; font-size:0.83rem;}
+  button.demo-btn:hover{background:var(--teal);}
+  button.demo-btn:disabled{opacity:0.35; cursor:not-allowed;}
+  button.demo-btn.ghost{background:transparent; border:1px solid var(--border); color:var(--text);}
+  button.demo-btn.ghost:hover{border-color:var(--teal); color:var(--teal);}
+
+  input.demo-input, select.demo-input{background:var(--code-bg); border:1px solid var(--border); color:var(--text); padding:9px 11px; border-radius:8px; font-family:'Inter',sans-serif; font-size:0.84rem; outline:none;}
+  input.demo-input:focus, select.demo-input:focus{border-color:var(--purple);}
+
+  .note{border:1px solid var(--border); background:var(--bg-panel-2); border-radius:10px; padding:14px 16px; font-size:0.84rem; color:var(--text-muted); margin-top:8px;}
+  .note strong{color:var(--text);}
+
+  .checklist{list-style:none; padding:0; margin:0;}
+  .checklist li{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:0.87rem; color:var(--text-muted); cursor:pointer;}
+  .checklist li:last-child{border-bottom:none;}
+  .checklist .box{width:17px; height:17px; border-radius:5px; border:1.5px solid var(--border); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; font-size:0.66rem; color:#04150f;}
+  .checklist .box.on{background:var(--teal); border-color:var(--teal);}
+  .checklist li.on .txt{color:var(--text); text-decoration:line-through; text-decoration-color:var(--border);}
+
+  /* réplica look real Agenda ADSO */
+  .agenda-frame{background:#f8fafc; border-radius:10px; padding:20px;}
+  .app-container{max-width:480px; margin:0 auto; font-family:Inter, system-ui, Arial;}
+  .tarjeta-contacto{background:#fff; border:1px solid #eee; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); padding:12px 14px; margin-bottom:8px;}
+  .pager{display:flex; align-items:center; justify-content:center; gap:6px; margin-top:16px; flex-wrap:wrap;}
+  .pager button{border:1px solid #d1d5db; background:#fff; color:#374151; border-radius:8px; padding:7px 12px; font-size:12.5px; cursor:pointer;}
+  .pager button:hover{border-color:#7c3aed; color:#7c3aed;}
+  .pager button.active{background:#7c3aed; border-color:#7c3aed; color:#fff;}
+  .pager button:disabled{opacity:.35; cursor:not-allowed;}
+
+  .pdf-btn{
+    position:fixed; top:18px; right:18px; z-index:200;
+    display:flex; align-items:center; gap:8px;
+    background:var(--teal); color:#04150f;
+    border:none; font-family:'Space Grotesk',sans-serif; font-weight:600;
+    padding:11px 18px; border-radius:30px; cursor:pointer;
+    font-size:0.84rem; box-shadow:0 4px 18px rgba(45,212,191,0.3);
+  }
+  .pdf-btn:hover{background:#5eead4;}
+  .pdf-btn:disabled{opacity:0.6; cursor:wait;}
+  .pdf-btn svg{width:15px; height:15px; flex-shrink:0;}
+  @media (max-width:600px){
+    .pdf-btn{ top:auto; bottom:18px; right:18px; padding:12px; border-radius:50%; }
+    .pdf-btn .pdf-label{display:none;}
+  }
+
+  footer{text-align:center; padding:50px 20px; color:var(--text-muted); font-size:0.8rem; border-top:1px solid var(--border);}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--border); border-radius:10px;}
+</style>
+</head>
+<body>
+
+<button id="pdf-btn" class="pdf-btn" onclick="downloadPDF()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  <span class="pdf-label" id="pdf-btn-label">Descargar todo en PDF</span>
+</button>
+
+<div class="shell">
+  <aside class="sidenav">
+    <div class="brand"><span class="dot"></span> Extra · ADSO</div>
+    <div class="brand-sub">Paginación en React</div>
+    <nav id="sidenav-links">
+      <a href="#intro">Introducción</a>
+      <a href="#por-que">¿Por qué paginar?</a>
+      <a href="#estados">Estados de paginación</a>
+      <a href="#totalpaginas">Calcular totalPaginas</a>
+      <a href="#slice">Recortar con slice()</a>
+      <a href="#controles">Controles de paginación</a>
+      <a href="#reset">Reiniciar página al buscar</a>
+      <a href="#demo">Agenda ADSO paginada en vivo</a>
+      <a href="#reto">Mini reto</a>
+    </nav>
+  </aside>
+
+  <main id="pdf-content">
+    <div class="hero" id="intro">
+      <div class="eyebrow">SENA CTMA · ADSO — Desarrollo Web ReactJS</div>
+      <h1>Tema de aprendizaje: <em>Paginación en React</em> — Agenda ADSO</h1>
+      <p class="sub">Con búsqueda y orden, la Agenda ADSO ya se ve profesional — pero si crece a 50 o 200 contactos, mostrarlos todos de una vez vuelve a ser un problema. Hoy dividimos la lista en páginas, con estado y matemática simple.</p>
+      <div class="hero-meta">
+        <span class="pill">Tema: Paginación de listas</span>
+        <span class="pill">Extensión de Agenda ADSO v8/v9</span>
+        <span class="pill">useState + slice + Math.ceil</span>
+      </div>
+    </div>
+
+    <section>
+      <div class="eyebrow">00</div>
+      <h2>Propósito y resultados de aprendizaje</h2>
+      <p class="lead">Que el aprendiz implemente paginación sobre una lista de datos en React, dividiendo resultados extensos en páginas navegables, sin romper la búsqueda ni el ordenamiento ya construidos.</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> Resultados de aprendizaje relacionados</div>
+        <div class="panel-body">
+          <ul style="margin:0; padding-left:18px; color:var(--text-muted); font-size:0.87rem; line-height:2;">
+            <li><strong style="color:var(--text)">220501008</strong> — Implementa mejoras de usabilidad y diseño en la interfaz, sobre listas de datos extensas.</li>
+            <li><strong style="color:var(--text)">220501007</strong> — Construye componentes con funcionalidades adicionales (controles de paginación reutilizables).</li>
+            <li><strong style="color:var(--text)">220501010</strong> — Maneja y presenta datos obtenidos de una fuente (API o arreglo local) de forma paginada.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="por-que">
+      <div class="eyebrow">01</div>
+      <h2>¿Por qué paginar?</h2>
+      <p class="lead">Renderizar 200 tarjetas de contacto a la vez es lento para el navegador y agotador para la persona que tiene que hacer scroll. La paginación resuelve ambos problemas: solo se pinta un pedazo de la lista a la vez.</p>
+      <div class="panel">
+        <div class="panel-body">
+          <ul style="margin:0; padding-left:18px; color:var(--text-muted); font-size:0.88rem; line-height:2;">
+            <li><strong style="color:var(--text)">Rendimiento:</strong> React solo crea los nodos del DOM para los contactos visibles.</li>
+            <li><strong style="color:var(--text)">Usabilidad:</strong> es más fácil orientarse en "página 2 de 5" que en un scroll infinito sin referencia.</li>
+            <li><strong style="color:var(--text)">Costo real:</strong> si los datos vinieran paginados desde el backend, además ahorrarías ancho de banda — aquí lo hacemos en el cliente, sobre datos que ya tenemos.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="estados">
+      <div class="eyebrow">02</div>
+      <h2>Dos estados nuevos</h2>
+      <p class="lead">Igual que <code>busqueda</code> y <code>ordenAsc</code> en la Clase 10, la paginación vive en su propio par de estados — no tocan los datos, solo cómo se muestran.</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> src/App.jsx</div>
+        <div class="code-explain">
+          <pre class="code"><span class="cm">// Página que se está mostrando ahora mismo (empieza en 1)</span>
+<span class="kw">const</span> [paginaActual, setPaginaActual] = <span class="fn">useState</span>(1);
+
+<span class="cm">// Cuántos contactos mostrar por página</span>
+<span class="kw">const</span> [contactosPorPagina] = <span class="fn">useState</span>(3);</pre>
+          <div class="explain-side">
+            <div class="et">paginaActual empieza en 1</div>
+            <div class="ed">No en 0 — así "página 1" coincide con lo que la persona espera ver, sin restar mentalmente.</div>
+            <div class="et">contactosPorPagina</div>
+            <div class="ed">Aquí es un valor fijo, pero nada impide convertirlo en configurable (lo hacemos en el mini reto de más abajo).</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="totalpaginas">
+      <div class="eyebrow">03</div>
+      <h2>Calcular el total de páginas</h2>
+      <p class="lead">Con la lista ya filtrada y ordenada (de la Clase 10), calculamos cuántas páginas hacen falta.</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> src/App.jsx</div>
+        <div class="code-explain">
+          <pre class="code"><span class="kw">const</span> totalPaginas = Math.<span class="fn">ceil</span>(
+  contactosOrdenados.length / contactosPorPagina
+);</pre>
+          <div class="explain-side">
+            <div class="et">Math.ceil(...)</div>
+            <div class="ed">Redondea siempre hacia arriba: con 7 contactos y 3 por página, <code>7 / 3 = 2.33</code> → <code>Math.ceil</code> da <code>3</code> páginas, para que el séptimo contacto no se quede sin página.</div>
+            <div class="et">Se recalcula solo</div>
+            <div class="ed">Como no es estado, cambia automáticamente si <code>contactosOrdenados</code> cambia — por ejemplo, al escribir en el buscador y reducir los resultados.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="slice">
+      <div class="eyebrow">04</div>
+      <h2>Recortar la página actual con slice()</h2>
+      <p class="lead">De toda la lista ordenada, solo tomamos el pedazo que corresponde a la página en la que estamos.</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> src/App.jsx</div>
+        <div class="code-explain">
+          <pre class="code"><span class="kw">const</span> indiceInicio = (paginaActual - 1) * contactosPorPagina;
+<span class="kw">const</span> indiceFin = indiceInicio + contactosPorPagina;
+
+<span class="kw">const</span> contactosPaginados = contactosOrdenados.<span class="fn">slice</span>(
+  indiceInicio,
+  indiceFin
+);</pre>
+          <div class="explain-side">
+            <div class="et">(paginaActual - 1) * contactosPorPagina</div>
+            <div class="ed">Con página 1 y 3 por página: <code>(1-1)*3 = 0</code> — empieza en el índice 0. Con página 2: <code>(2-1)*3 = 3</code> — empieza en el cuarto contacto (índice 3).</div>
+            <div class="et">.slice(inicio, fin)</div>
+            <div class="ed">Igual que <code>.filter()</code> y <code>.sort()</code>, <code>.slice()</code> <strong>no modifica</strong> el arreglo original — devuelve un pedazo nuevo. <code>fin</code> no es inclusivo, así que sirve pasarlo directo.</div>
+          </div>
+        </div>
+      </div>
+      <div class="note"><strong>Este es el único paso nuevo de verdad:</strong> todo lo demás (búsqueda, orden) sigue igual que en la Clase 10 — la paginación se aplica <em>después</em>, sobre <code>contactosOrdenados</code>.</div>
+    </section>
+
+    <section id="controles">
+      <div class="eyebrow">05</div>
+      <h2>Controles: Anterior, Siguiente y números de página</h2>
+      <p class="lead">Un botón "Anterior", uno por cada número de página, y "Siguiente" — deshabilitados en los extremos.</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> JSX del paginador</div>
+        <div class="code-explain">
+          <pre class="code">&lt;<span class="tag">div</span> <span class="attr">className</span>=<span class="str">"flex items-center justify-center gap-2 mt-4"</span>&gt;
+  &lt;<span class="tag">button</span>
+    <span class="attr">disabled</span>={paginaActual === 1}
+    <span class="attr">onClick</span>={() => setPaginaActual((p) => p - 1)}
+  &gt;
+    ← Anterior
+  &lt;/<span class="tag">button</span>&gt;
+
+  {Array.<span class="fn">from</span>({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+    &lt;<span class="tag">button</span>
+      <span class="attr">key</span>={n}
+      <span class="attr">className</span>={n === paginaActual ? <span class="str">"activo"</span> : <span class="str">""</span>}
+      <span class="attr">onClick</span>={() => setPaginaActual(n)}
+    &gt;
+      {n}
+    &lt;/<span class="tag">button</span>&gt;
+  ))}
+
+  &lt;<span class="tag">button</span>
+    <span class="attr">disabled</span>={paginaActual === totalPaginas}
+    <span class="attr">onClick</span>={() => setPaginaActual((p) => p + 1)}
+  &gt;
+    Siguiente →
+  &lt;/<span class="tag">button</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</pre>
+          <div class="explain-side">
+            <div class="et">Array.from({'{ length: totalPaginas }'}, (_, i) =&gt; i + 1)</div>
+            <div class="ed">Un truco común para generar <code>[1, 2, 3, ..., totalPaginas]</code> sin un bucle <code>for</code> — creamos un array "vacío" del tamaño correcto y lo llenamos con el índice + 1.</div>
+            <div class="et">disabled={'{paginaActual === 1}'}</div>
+            <div class="ed">"Anterior" se desactiva solo en la primera página; "Siguiente", solo en la última — sin necesitar lógica extra.</div>
+            <div class="et">setPaginaActual((p) =&gt; p - 1)</div>
+            <div class="ed">La forma funcional, igual que con <code>ordenAsc</code>: parte del valor anterior en vez de asumirlo.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="reset">
+      <div class="eyebrow">06</div>
+      <h2>Reiniciar a la página 1 cuando cambia la búsqueda</h2>
+      <p class="lead">Si estás en la página 4 y escribes algo que reduce los resultados a 2, la página 4 ya no existe. Hay que volver a la 1.</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> src/App.jsx</div>
+        <div class="code-explain">
+          <pre class="code"><span class="fn">useEffect</span>(() => {
+  <span class="fn">setPaginaActual</span>(1);
+}, [busqueda, ordenAsc]);</pre>
+          <div class="explain-side">
+            <div class="et">[busqueda, ordenAsc] como dependencias</div>
+            <div class="ed">Cada vez que cambia lo que se busca (o el orden), volvemos a la primera página — evita quedarte viendo una página vacía o inexistente.</div>
+            <div class="et">¿Por qué no [contactosOrdenados]?</div>
+            <div class="ed">Ese array cambia en cada render (es un valor nuevo cada vez, aunque el contenido sea igual) — usarlo como dependencia reiniciaría la página en cada tecla incluso sin razón. Por eso se usan las causas reales: <code>busqueda</code> y <code>ordenAsc</code>.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <div class="eyebrow">07 · En vivo</div>
+      <h2>Agenda ADSO paginada — buscador, orden y páginas juntos</h2>
+      <p class="lead">7 contactos de ejemplo, 3 por página. Busca, cambia el orden, y navega entre páginas — todo combinado, como en tu proyecto real.</p>
+      <div id="agenda-demo" class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> Agenda ADSO <span class="badge">filter + sort + slice</span></div>
+        <div class="panel-body"></div>
+      </div>
+    </section>
+
+    <section id="reto">
+      <div class="eyebrow">08 · Mini reto</div>
+      <h2>Para tu proyecto real</h2>
+      <p class="lead">Dos mejoras opcionales, del mismo estilo que los mini retos de clases anteriores:</p>
+      <div class="panel">
+        <div class="panel-head"><div class="lights"><span></span><span></span><span></span></div> Reto extendido</div>
+        <div id="reto-root" class="panel-body"></div>
+      </div>
+    </section>
+
+    <footer>Extra — Paginación en React · Agenda ADSO · SENA CTMA Regional Antioquia · ADSO, Desarrollo Web con ReactJS</footer>
+  </main>
+</div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+/* ---------------- AGENDA ADSO PAGINADA ---------------- */
+const CONTACTOS_DEMO = [
+  { id:1, nombre:'Ana Torres', telefono:'300 123 4567', correo:'ana.torres@sena.edu.co', etiqueta:'Compañera' },
+  { id:2, nombre:'Cristian Acevedo', telefono:'300 765 4321', correo:'cristian@sena.edu.co', etiqueta:'Instructor' },
+  { id:3, nombre:'Gustavo Bolaños', telefono:'321 753 2037', correo:'gustavo@sena.edu.co', etiqueta:'Instructor' },
+  { id:4, nombre:'Beatriz Salazar', telefono:'310 222 4455', correo:'beatriz@sena.edu.co', etiqueta:'Compañera' },
+  { id:5, nombre:'Manuela Ríos', telefono:'313 908 1122', correo:'manuela@sena.edu.co', etiqueta:'Cliente' },
+  { id:6, nombre:'Diego Herrera', telefono:'315 400 8899', correo:'diego@sena.edu.co', etiqueta:'Cliente' },
+  { id:7, nombre:'Laura Gómez', telefono:'320 118 3344', correo:'laura@sena.edu.co', etiqueta:'Proveedor' },
+];
+
+function ContactoCard({ nombre, telefono, correo, etiqueta }){
+  return (
+    <div className="tarjeta-contacto">
+      <div style={{fontWeight:700, color:'#111827'}}>{nombre}</div>
+      {etiqueta && <span style={{display:'inline-block', background:'#ede9fe', color:'#7c3aed', fontSize:11, padding:'2px 9px', borderRadius:20, marginTop:4}}>{etiqueta}</span>}
+      <div style={{marginTop:6, fontSize:12.5, color:'#4b5563'}}>
+        <p style={{margin:'2px 0'}}>📞 {telefono}</p>
+        <p style={{margin:'2px 0'}}>✉️ {correo}</p>
+      </div>
+    </div>
+  );
+}
+
+function AgendaPaginada(){
+  const [busqueda, setBusqueda] = useState('');
+  const [ordenAsc, setOrdenAsc] = useState(true);
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [contactosPorPagina, setContactosPorPagina] = useState(3);
+
+  const contactosFiltrados = CONTACTOS_DEMO.filter((c) => {
+    const termino = busqueda.toLowerCase();
+    return (
+      c.nombre.toLowerCase().includes(termino) ||
+      c.correo.toLowerCase().includes(termino) ||
+      (c.etiqueta || '').toLowerCase().includes(termino)
+    );
+  });
+
+  const contactosOrdenados = [...contactosFiltrados].sort((a, b) => {
+    const nombreA = a.nombre.toLowerCase();
+    const nombreB = b.nombre.toLowerCase();
+    if(nombreA < nombreB) return ordenAsc ? -1 : 1;
+    if(nombreA > nombreB) return ordenAsc ? 1 : -1;
+    return 0;
+  });
+
+  const totalPaginas = Math.max(1, Math.ceil(contactosOrdenados.length / contactosPorPagina));
+  const indiceInicio = (paginaActual - 1) * contactosPorPagina;
+  const contactosPaginados = contactosOrdenados.slice(indiceInicio, indiceInicio + contactosPorPagina);
+
+  useEffect(() => { setPaginaActual(1); }, [busqueda, ordenAsc, contactosPorPagina]);
+  useEffect(() => { if(paginaActual > totalPaginas) setPaginaActual(totalPaginas); }, [totalPaginas]);
+
+  return (
+    <div className="agenda-frame">
+      <div className="app-container">
+        <h1 style={{textAlign:'center', color:'#7c3aed', fontWeight:800, fontSize:'1.4rem', margin:'0 0 4px'}}>Agenda ADSO</h1>
+        <p style={{textAlign:'center', fontSize:12.5, color:'#6b7280', margin:'0 0 16px'}}>{contactosOrdenados.length} contacto{contactosOrdenados.length !== 1 ? 's' : ''} · página {paginaActual} de {totalPaginas}</p>
+
+        <div style={{display:'flex', gap:8, flexWrap:'wrap', marginBottom:10}}>
+          <input
+            className="demo-input"
+            style={{flex:1, minWidth:160, background:'#fff', color:'#111827', borderColor:'#d1d5db'}}
+            placeholder="Buscar..."
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+          />
+          <button type="button" onClick={() => setOrdenAsc(p => !p)} style={{background:'#f3f4f6', color:'#374151', fontSize:12.5, padding:'8px 14px', borderRadius:10, border:'1px solid #e5e7eb', cursor:'pointer'}}>
+            {ordenAsc ? 'Ordenar Z-A' : 'Ordenar A-Z'}
+          </button>
+          <select className="demo-input" style={{background:'#fff', color:'#111827', borderColor:'#d1d5db'}} value={contactosPorPagina} onChange={e => setContactosPorPagina(Number(e.target.value))}>
+            <option value={2}>2 / pág.</option>
+            <option value={3}>3 / pág.</option>
+            <option value={5}>5 / pág.</option>
+          </select>
+        </div>
+
+        {contactosPaginados.length === 0 ? (
+          <p style={{textAlign:'center', color:'#9ca3af', fontSize:13}}>No se encontraron contactos que coincidan con la búsqueda.</p>
+        ) : (
+          contactosPaginados.map(c => <ContactoCard key={c.id} {...c} />)
+        )}
+
+        <div className="pager">
+          <button disabled={paginaActual === 1} onClick={() => setPaginaActual(p => p - 1)}>← Anterior</button>
+          {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(n => (
+            <button key={n} className={n === paginaActual ? 'active' : ''} onClick={() => setPaginaActual(n)}>{n}</button>
+          ))}
+          <button disabled={paginaActual === totalPaginas} onClick={() => setPaginaActual(p => p + 1)}>Siguiente →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.querySelector('#agenda-demo .panel-body')).render(<AgendaPaginada/>);
+
+/* ---------------- CHECKLIST DEL RETO ---------------- */
+function Checklist({ items: itemsIniciales }){
+  const [items, setItems] = useState(itemsIniciales.map((t,i) => ({id:i, texto:t, done:false})));
+  function toggle(id){ setItems(items.map(it => it.id === id ? {...it, done: !it.done} : it)); }
+  const hechas = items.filter(i => i.done).length;
+  return (
+    <div>
+      <ul className="checklist">
+        {items.map(it => (
+          <li key={it.id} className={it.done ? 'on' : ''} onClick={() => toggle(it.id)}>
+            <span className={"box" + (it.done ? ' on' : '')}>{it.done ? '✓' : ''}</span>
+            <span className="txt">{it.texto}</span>
+          </li>
+        ))}
+      </ul>
+      <p style={{fontSize:'0.78rem', color:'var(--text-muted)', marginTop:12}}>{hechas} de {items.length} completados</p>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('reto-root')).render(
+  <Checklist items={[
+    'Deja contactosPorPagina como un selector visible (como en la demo)',
+    'Muestra el texto "Página X de Y" junto al paginador',
+  ]}/>
+);
+</script>
+
+<script>
+  const links = document.querySelectorAll('#sidenav-links a');
+  const sections = [...links].map(a => document.querySelector(a.getAttribute('href')));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const id = '#' + entry.target.id;
+        links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+      }
+    });
+  }, {rootMargin: '-40% 0px -50% 0px'});
+  sections.forEach(s => s && io.observe(s));
+
+  function downloadPDF(){
+    const btn = document.getElementById('pdf-btn');
+    const label = document.getElementById('pdf-btn-label');
+    const content = document.getElementById('pdf-content');
+    const originalLabel = label.textContent;
+    btn.disabled = true;
+    label.textContent = 'Generando PDF…';
+
+    const opt = {
+      margin: [10, 10, 12, 10],
+      filename: 'paginacion-react-agenda-adso.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0A1614' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'avoid-all'] }
+    };
+
+    html2pdf().set(opt).from(content).save().then(() => {
+      btn.disabled = false;
+      label.textContent = originalLabel;
+    }).catch(() => {
+      btn.disabled = false;
+      label.textContent = originalLabel;
+    });
+  }
+</script>
+</body>
+</html>
