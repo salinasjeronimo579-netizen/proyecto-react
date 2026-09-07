@@ -10,6 +10,7 @@ export function ContactoFormulario({ OnAgregar }) {
     const [telefono, setTelefono] = useState("");
     const [etiqueta, setEtiqueta] = useState("");
     const [empresa, setEmpresa] = useState("");
+    const [imagen, setImagen] = useState("");
 
     const nombreDiligenciado = nombre.trim() !== "";
     const telefonoDiligenciado = telefono.trim() !== "";
@@ -48,8 +49,14 @@ export function ContactoFormulario({ OnAgregar }) {
             <Input
             type="text"
             placeholder="Empresa"
-            value={empresa} 
+            value={empresa}
             onChange={(e)=> setEmpresa(e.target.value)}
+            />
+            <Input
+            type="text"
+            placeholder="URL de imagen (opcional)"
+            value={imagen}
+            onChange={(e)=> setImagen(e.target.value)}
             />
 
             {telefono && !telefonoValido && (
@@ -62,7 +69,7 @@ export function ContactoFormulario({ OnAgregar }) {
             type="button"
             disabled={!formularioValido}
             className="col-span-full min-w-[180px] justify-self-center"
-            onClick={() => { OnAgregar(nombre, correo, telefono, etiqueta, empresa); setNombre(""); setCorreo(""); setTelefono(""); setEtiqueta(""); setEmpresa(""); }}
+            onClick={() => { OnAgregar(nombre, correo, telefono, etiqueta, empresa, imagen); setNombre(""); setCorreo(""); setTelefono(""); setEtiqueta(""); setEmpresa(""); setImagen(""); }}
             >Agregar</Button>
         </form>
     )

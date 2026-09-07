@@ -102,6 +102,7 @@ function App() {
                 telefono={contacto.telefono}
                 etiqueta={contacto.etiqueta}
                 empresa={contacto.empresa}
+                imagen={contacto.imagen}
                 onEliminar={() => EliminarContactoId(contacto.id)}
               />
             ))}

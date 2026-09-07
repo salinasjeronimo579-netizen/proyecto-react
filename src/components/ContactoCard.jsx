@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Card from "./ui/Card";
 import Avatar from "./ui/Avatar";
 import Badge from "./ui/Badge";
@@ -9,13 +10,25 @@ export default function ContactoCard({
   correo,
   etiqueta,
   onEliminar,
-  empresa
+  empresa,
+  imagen
 }) {
+  const [imagenError, setImagenError] = useState(false);
   const inicial = nombre ? nombre.charAt(0).toUpperCase() : "?";
+  const mostrarImagen = imagen && !imagenError;
 
   return (
     <Card>
-      <Avatar>{inicial}</Avatar>
+      {mostrarImagen ? (
+        <img
+          src={imagen}
+          alt={nombre}
+          onError={() => setImagenError(true)}
+          className="mb-4 h-[52px] w-[52px] rounded-full object-cover shadow-avatar"
+        />
+      ) : (
+        <Avatar>{inicial}</Avatar>
+      )}
       <h3 className="text-xl font-bold text-slate-100">{nombre}</h3>
 
       <p className="mt-3 flex items-center gap-1.5 text-sm text-slate-soft">
